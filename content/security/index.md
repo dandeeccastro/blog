@@ -12,3 +12,8 @@ Qualquer CTF ou coisa parecida que eu estiver fazendo, eu vou fazer por aqui, e 
 
 É sério. Não tem nada aqui. Se quiser sair, a [porta tá aqui]({{< ref "/" >}} "Home")
 
+Tipo, sério mesmo. 
+
+Papo reto.
+
+Confia.
