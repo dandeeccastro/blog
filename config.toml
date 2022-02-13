@@ -4,7 +4,6 @@ title = 'Meu Blog Pessoal'
 theme = 'terminal'
 
 paginate = 5
-
 defaultContentLanguage = "pt"
 
 [params]
@@ -44,7 +43,7 @@ defaultContentLanguage = "pt"
 
   # set all headings to their default size (depending on browser settings)
   # it's set to `true` by default
-  # oneHeadingSize = false
+  oneHeadingSize = false
 
 
 # [params.twitter]
@@ -82,31 +81,3 @@ defaultContentLanguage = "pt"
         name = "Blog"
         url = "/posts"
 
-  # [languages.en]
-  #   languageName = "English"
-  #   title = "Terminal"
-  #   subtitle = "A simple, retro theme for Hugo"
-  #   owner = ""
-  #   keywords = ""
-  #   copyright = ""
-  #   menuMore = "Show more"
-  #   readMore = "Read more"
-  #   readOtherPosts = "Read other posts"
-  #   newerPosts = "Newer posts"
-  #   olderPosts = "Older posts"
-  #   missingContentMessage = "Page not found..."
-  #   missingBackButtonLabel = "Back to home page"
-
-  #   [languages.en.params.logo]
-  #     logoText = "Terminal"
-  #     logoHomeLink = "/"
-
-  #   [languages.en.menu]
-  #     [[languages.en.menu.main]]
-  #       identifier = "about"
-  #       name = "About"
-  #       url = "/about"
-  #     [[languages.en.menu.main]]
-  #       identifier = "showcase"
-  #       name = "Showcase"
-  #       url = "/showcase"

