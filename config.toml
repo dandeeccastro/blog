@@ -1,4 +1,4 @@
-baseURL = 'https://dandeeccastro.github.io'
+baseURL = 'https://dandeeccastro.github.io/blog'
 languageCode = 'pt-br'
 title = 'Meu Blog Pessoal'
 theme = 'terminal'
